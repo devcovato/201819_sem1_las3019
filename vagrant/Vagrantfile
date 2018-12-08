@@ -60,39 +60,27 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       mount_options: ["dmode=755"]
 
     # Provisioning Ethereum
-    dhost.vm.provision "shell", privileged: false, inline: <<-SHELL
-  sleep 5
-  echo "Provision Ethereum..."
-  sudo bash /vagrant/scripts/provision.sh
-  echo "Fix annoying warning about 'npm update check failed'..."
-  sudo chown -R $USER:$(id -gn $USER) /home/vagrant/.config
+    dhost.vm.provision "shell", inline: <<-SHELL
+  set -e
+  echo "[info] Provision ..."
+  # provision.sh
+  bash /vagrant/scripts/provision.sh
 SHELL
 
-    # Truffle box
-    dhost.vm.provision "trufflebox", privileged: false, type: "shell", inline: <<-SHELL
-  sleep 5
-  echo "Truffle box creating..."
-  TRUFFLEBOX_TMP=/tmp/trufflebox-webpack-tmp
-  # Prepare and run truffle unbox command
-  rm -rf $TRUFFLEBOX_TMP
-  mkdir -p $TRUFFLEBOX_TMP
-  cd $TRUFFLEBOX_TMP
-  truffle unbox webpack
-  # Create shareable node_modules folder
-  sleep 5
-  TRUFFLEBOX_PRJ=~/projects/trufflebox-webpack
-  TRUFFLEBOX_PRJ_NM="$TRUFFLEBOX_PRJ/node_modules"
-  rm -rf $TRUFFLEBOX_PRJ_NM
-  mkdir -p $TRUFFLEBOX_PRJ_NM
-  # Copy contents
-  TRUFFLEBOX_PRJ_HOST=~/sf_projects/trufflebox-webpack
-  # -- *NOTE* This action is destructive
-  rm -rf $TRUFFLEBOX_PRJ_HOST
-  mkdir -p $TRUFFLEBOX_PRJ_HOST
-  cp -r `ls -A | grep -v "node_modules"` "$TRUFFLEBOX_PRJ_HOST/"
-  cd $TRUFFLEBOX_PRJ_HOST
-  ln -sfT "$TRUFFLEBOX_PRJ_NM" "$TRUFFLEBOX_PRJ_HOST/node_modules"
-  npm install
+    # Set up Ethereum Development Environment
+    dhost.vm.provision "devenv", type: "shell", privileged: false, inline: <<-SHELL
+  set -e
+  echo "[info] Set up Ethereum Development Enviroment ..."
+  # setup-dev-env.sh
+  bash /vagrant/scripts/setup-devenv.sh
 SHELL
+
+    # Set up Truffle box
+    dhost.vm.provision "trufflebox", type: "shell", privileged: false, inline: <<-SHELL
+    set -e
+    echo "[info] Set up Truffle box ..."
+    exec "$BASH" -il /vagrant/scripts/setup-trufflebox.sh
+SHELL
+
   end
 end
