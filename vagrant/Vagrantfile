@@ -4,6 +4,12 @@
 VAGRANTFILE_API_VERSION ||= "2"
 Vagrant.require_version ">= 2.1.0"
 
+# Shared folder values
+sf_smb_host = ENV["VAGRANT_SF_SMB_HOST"]
+sf_smb_domain = ENV["COMPUTERNAME"]
+sf_smb_username = ENV["VAGRANT_SF_SMB_USERNAME"]
+sf_smb_password = ENV["VAGRANT_SF_SMB_PASSWORD"]
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if Vagrant.has_plugin?("vagrant-hostmanager")
     config.hostmanager.enabled = true
@@ -11,6 +17,22 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.hostmanager.manage_guest = true
     config.hostmanager.ignore_private_ip = false
     config.hostmanager.include_offline = false
+  end
+
+  if Vagrant.has_plugin?("vagrant-cachier")
+    # Configure cached packages to be shared between instances of the same base box.
+    # More info on http://fgrehm.viewdocs.io/vagrant-cachier/usage
+    config.cache.scope = :box
+
+    config.cache.synced_folder_opts = {
+      type: :smb,
+      mount_options: ["mfsymlinks", "rw", "fsc", "dir_mode=0777,file_mode=0777"],
+      group: "vboxsf",
+      smb_host: sf_smb_host,
+      smb_username: sf_smb_username,
+      smb_password: sf_smb_password,
+      smb_id: "box-ubuntu-bionic64"
+    }
   end
 
   config.vm.define "201819_sem1_las3019" do |dhost|

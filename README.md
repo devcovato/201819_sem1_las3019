@@ -34,6 +34,14 @@ To get a functional `vagrant` the following tested plugin are required:
 - vagrant-vbguest
 - vagrant-hostmanager
 
+To save download time use the plugin `vagrant-cachier` and define the following environment variables:
+
+- `VAGRANT_SF_SMB_HOST` is the IP host to connect to, for example `10.0.2.2`
+- `VAGRANT_SF_SMB_USERNAME` is the user name allowed to map the remote folder
+- `VAGRANT_SF_SMB_PASSWORD` is the user password
+
+The plugin `vagrant-cachier` is configured to be optional.
+
 ## Truffle Project
 
 > **NOTE**
