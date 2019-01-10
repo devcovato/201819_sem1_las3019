@@ -9,9 +9,10 @@
 ## Table Of Contents
 
 - [Intro](#intro)
-- [Vagrant](#vagrant)
+  - [Vagrant](#vagrant)
+- [Project Organization](#project-organization)
 - [Truffle Project](#truffle-project)
-- [Notes](#notes)
+- [Tips and Tricks](#tips-and-tricks)
 - [Known Issues](#known-issues)
 - [License](#license)
 
@@ -21,20 +22,20 @@ To start developing on Ethereum the following software is required:
 
 > NOTE The below software is installed using [chocolatey](https://chocolatey.org/).
 
-- [vagrant](https://www.vagrantup.com/) (version at writing moment: 2.2.1)
+- [vagrant](https://www.vagrantup.com/) (version at writing moment: 2.2.2)
 - [virtualbox](https://www.virtualbox.org/) (version at writing moment: 5.2.22)
 - [git](https://git-scm.com/) (version at writing moment: 2.19.1). The chocolatey package name `git.install`
 - [openssh](https://github.com/PowerShell/Win32-OpenSSH) (version at writing moment: 7.7.2.1)
-- [visual studio code](https://code.visualstudio.com/) as editor or whatever you like
+- [visual studio code](https://code.visualstudio.com/) (version at writing moment: 1.30.2) as editor or whatever you like
 
-## Vagrant
+### Vagrant
 
 To get a functional `vagrant` the following tested plugin are required:
 
-- vagrant-vbguest
-- vagrant-hostmanager
+- [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest)
+- [vagrant-hostmanager](https://github.com/devopsgroup-io/vagrant-hostmanager)
 
-To save download time use the plugin `vagrant-cachier` and define the following environment variables:
+To save download time for guest machine use the plugin [vagrant-cachier](https://github.com/fgrehm/vagrant-cachier) and define the following environment variables:
 
 - `VAGRANT_SF_SMB_HOST` is the IP host to connect to, for example `10.0.2.2`
 - `VAGRANT_SF_SMB_USERNAME` is the user name allowed to map the remote folder
@@ -42,16 +43,46 @@ To save download time use the plugin `vagrant-cachier` and define the following 
 
 The plugin `vagrant-cachier` is configured to be optional.
 
+## Project Organization
+
+Below the project organization:
+
+```shell
+<current_folder>
+|   .editorconfig
+|   .gitignore
+|   LICENSE.md
+|   README.md
+|
++---projects
+|       .gitignore
+|
+\---vagrant
+    |   Vagrantfile
+    |
+    \---scripts
+            install-geth.sh
+            install-node-nvm.sh
+            install-nvm.sh
+            install-truffle.sh
+            provision.sh
+            setup-devenv.sh
+            setup-trufflebox.sh
+```
+
+The `projects` folder contains `truffle` projects only. Additionally, the folder `projects` is mounted as shared folder into the vagrant box as `/home/vagrant/sf_projects`.
+
 ## Truffle Project
 
-> **NOTE**
->
-> - The default folder project name is `trufflebox-webpack`. If you want to change then edit the file `Vagrantfile`
-> - Keep in mind that at this stage any sub-folder under `projects` will be deleted if you create the machine the first time
+By default the script `setup-trufflebox.sh` creates a new `truffle` project named `trufflebox-webpack`. Moreover, the file `trufflebox-webpack.lock` is created to avoid overriding the project already set up. So, if you want to recreate the project than delete the `lock` file.
 
-The folder `projects` is mounted as shared folder into the vagrant box as `/home/vagrant/sf_projects`.
+If you want change the default `truffle` project or add a new one set the environment variable `TRUFFLEBOX_PRJNAME` in `Vagranfile` like so:
 
-Before running a `truffle` project, already set up for you, apply the following tweaks:
+```ruby
+    exec env TRUFFLEBOX_PROJECT_NAME='my-truffle' "$BASH" -il /vagrant/scripts/setup-trufflebox.sh
+```
+
+Before running a `truffle` project apply the following tweaks:
 
 - file `package.json` changes the script `dev` with `webpack-dev-server --public 201819-sem1-las3019.test:8080 --host 0.0.0.0`
 - file `app/scripts/index.js` replaces `127.0.0.1` with `201819-sem1-las3019.test`
@@ -61,9 +92,8 @@ In order to run a Web3 provider for testing/developing run `ganache-cli --host 0
 
 The above changes about host come in handy to avoid the ports remapping and potentially some side-effects.
 
-## Notes
+## Tips and Tricks
 
-- you can find the project `trufflebox-webpack` in the vagrant box under `/home/vagrant/sf_projects`
 - use `byobu` to split the screen and running multiple commands
 - open your favourite browser at <http://201819-sem1-las3019.test:8080>
 
@@ -74,6 +104,21 @@ The above changes about host come in handy to avoid the ports remapping and pote
   - <http://rizwanansari.net/run-hyper-v-and-virtualbox-on-the-same-machine/>
 - Slow ssh connection running `vagrant ssh`. Set up the environment variable `VAGRANT_PREFER_SYSTEM_BIN` equals to 1
 - Failure to change the file hosts or mount shared folder. Run `vagrant` command with administrative permission (aka run administration console)
+- running `npm -g ls --depth=0` provides some warnings like below
+
+  ```shell
+  vagrant@201819-sem1-las3019:~$  npm -g ls --depth=0
+  /home/vagrant/.nvm/versions/node/v10.14.1/lib
+  +-- ganache-cli@6.2.3
+  +-- node-gyp@3.8.0
+  +-- npm@6.4.1
+  +-- solc@0.4.25
+  +-- truffle@5.0.0
+
+  npm ERR! invalid: websocket@1.0.26 /home/vagrant/.nvm/versions/node/v10.14.1/lib/node_modules/ganache-cli/node_modules/ganache-core/node_modules/web3-providers-ws/node_modules/websocket
+  npm ERR! invalid: ethereumjs-abi@0.6.5 /home/vagrant/.nvm/versions/node/v10.14.1/lib/node_modules/ganache-cli/node_modules/ganache-core/node_modules/eth-tx-summary/node_modules/eth-sig-util/node_modules/ethereumjs-abi
+  npm ERR! invalid: ethereumjs-abi@0.6.5 /home/vagrant/.nvm/versions/node/v10.14.1/lib/node_modules/ganache-cli/node_modules/ganache-core/node_modules/web3-provider-engine/node_modules/eth-sig-util/node_modules/ethereumjs-abi
+  ```
 
 ## License
 
