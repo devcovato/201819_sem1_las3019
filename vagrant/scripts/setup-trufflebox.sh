@@ -27,6 +27,7 @@ TRUFFLEBOX_PRJNAME_PATH_NODE_MODULES="$TRUFFLEBOX_PRJNAME_PATH/node_modules"
 TRUFFLEBOX_TMP="/tmp/${TRUFFLEBOX_PRJNAME}-tmp"
 
 if [[ -f "$TRUFFLEBOX_PRJNAME_LOCK_FILE" ]]; then
+  echo "Trufflex box '$TRUFFLEBOX_PRJNAME' already created"
   exit 0
 fi
 
