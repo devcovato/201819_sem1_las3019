@@ -44,7 +44,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     dhost.vm.network "private_network", ip: "192.168.56.10"
     # virtualbox settings
     dhost.vm.provider "virtualbox" do |vb|
-      vb.name = "[plas] 201819_sem1_las3019"
+      vb.name = "plas__201819-sem1-las3019"
       vb.memory = "4096"
 
       vb.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ]
