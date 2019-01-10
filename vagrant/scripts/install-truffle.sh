@@ -13,8 +13,8 @@ else
   echo "[info] node-gyp is already installed"
 fi
 # web3.js
-echo "[info] Install web3@0.20.7 ..."
 if [[ $(npm -g ls --depth=0 > /dev/null | grep -c 'web3') -eq 1 ]]; then
+  echo "[info] Install web3@0.20.7 ..."
   npm install -g -s web3@0.20.7
 else
   echo "[info] web3 is already installed"
