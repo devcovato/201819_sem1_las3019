@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# Setup Truffle box
+# Setup Truffle box and/or rebuild node_modules symlink
 
 {
 
 set -e
 
-echo "Truffle box creating ..."
+echo "[info] Truffle box creating ..."
 if ! command -v truffle > /dev/null; then
   >&2 echo "[error] Truffle command not available"
   >&2 echo
@@ -19,24 +19,62 @@ TRUFFLEBOX_NAME="${TRUFFLEBOX_NAME:-webpack}"
 # host
 HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED=~/sf_projects
 HOST_TRUFFLEBOX_PRJNAME_PATH="$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED/$TRUFFLEBOX_PRJNAME"
-HOST_TRUFFLEBOX_PRJNAME_APP_PATH="$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED/$TRUFFLEBOX_PRJNAME/app"
-HOST_TRUFFLEBOX_PRJNAME_APP_PATH_NODE_MODULES="$HOST_TRUFFLEBOX_PRJNAME_APP_PATH/node_modules"
-HOST_TRUFFLEBOX_PRJNAME_LOCK_FILE="$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED/.${TRUFFLEBOX_PRJNAME}.lock"
+HOST_TRUFFLEBOX_PRJNAME_LOCK_FILE="$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED/.$TRUFFLEBOX_PRJNAME.lock"
 # guest
 GUEST_TRUFFLEBOX_PROJECTS_ROOT=~/projects
 GUEST_TRUFFLEBOX_PRJNAME_PATH="$GUEST_TRUFFLEBOX_PROJECTS_ROOT/$TRUFFLEBOX_PRJNAME"
-GUEST_TRUFFLEBOX_PRJNAME_APP_PATH="$GUEST_TRUFFLEBOX_PRJNAME_PATH/app"
-GUEST_TRUFFLEBOX_PRJNAME_APP_PATH_NODE_MODULES="$GUEST_TRUFFLEBOX_PRJNAME_APP_PATH/node_modules"
 # tmp
 TRUFFLEBOX_TMP="/tmp/${TRUFFLEBOX_PRJNAME}-tmp"
 
+# Prepare guest 'projects' folder
+mkdir -p $GUEST_TRUFFLEBOX_PROJECTS_ROOT
+
+# Recreate guest project folder only for locked ones
+find "$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED" -maxdepth 1 -type d \( ! -path "$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED" -prune \) | while read -r prj_path;
+do
+  prj_box="$(basename $prj_path)"
+  if [[ -f "$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED/.$prj_box.lock" ]]; then
+    echo "[info] '$prj_box' recreating and installing node modules..."
+    pkgjson_file="$(find $prj_path -type f -name 'package.json' -not -path '*node_modules*')"
+    app_path="$(dirname $pkgjson_file)"
+    base_app_path="${app_path#$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED\/}"
+    guest_app_path="$GUEST_TRUFFLEBOX_PROJECTS_ROOT/$base_app_path"
+    host_app_path="$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED/$base_app_path"
+
+    # Check if exists 'node_modules' folder
+    if [[ ! -d "$guest_app_path/node_modules" ]]; then
+      rm -rf $guest_app_path
+      mkdir -p "$guest_app_path/node_modules"
+    fi
+
+    # Check if target folder is not a symlink
+    if [[ ! -h "$host_app_path/node_modules" ]]; then
+      rm -rf "$host_app_path/node_modules"
+    fi
+    # Recreate the link
+    ln -sfT "$guest_app_path/node_modules" "$host_app_path/node_modules"
+
+    if [[ -n "$(find "$host_app_path/node_modules/" -maxdepth 0 -type d -empty 2>/dev/null)" ]]; then
+      cd $host_app_path
+      npm install
+      echo "[info] '$prj_box' ready"
+    else
+      echo "[info] '$prj_box' already set up"
+    fi
+
+    echo
+  fi
+done
+
 # Check lock file
 if [[ -f "$HOST_TRUFFLEBOX_PRJNAME_LOCK_FILE" ]]; then
-  echo "Trufflex box '$TRUFFLEBOX_PRJNAME' already created"
+  echo "[info] Trufflex box '$TRUFFLEBOX_PRJNAME' already created"
   exit 0
 fi
 
-# Prepare and run truffle unbox command in "temp" folder
+echo "[info] Set up truffle project '$TRUFFLEBOX_PRJNAME' using box '$TRUFFLEBOX_NAME'..."
+
+# Prepare and run truffle unbox 'box' in 'temp' folder
 rm -rf $TRUFFLEBOX_TMP
 mkdir -p $TRUFFLEBOX_TMP
 cd $TRUFFLEBOX_TMP
@@ -49,14 +87,30 @@ mkdir -p $HOST_TRUFFLEBOX_PRJNAME_PATH
 find . -type f -not -path "*node_modules*" -exec cp --parents '{}' "$HOST_TRUFFLEBOX_PRJNAME_PATH" \;
 
 # Finalize truffle box
-cd $HOST_TRUFFLEBOX_PRJNAME_APP_PATH
-# -- Create shareable node_modules folder
-rm -rf $GUEST_TRUFFLEBOX_PRJNAME_APP_PATH_NODE_MODULES
-mkdir -p $GUEST_TRUFFLEBOX_PRJNAME_APP_PATH_NODE_MODULES
-ln -sfT "$GUEST_TRUFFLEBOX_PRJNAME_APP_PATH_NODE_MODULES" "$HOST_TRUFFLEBOX_PRJNAME_APP_PATH_NODE_MODULES"
+pkgjson_file="$(find $HOST_TRUFFLEBOX_PRJNAME_PATH -type f -name 'package.json' -not -path '*node_modules*')"
+app_path="$(dirname $pkgjson_file)"
+base_app_path="${app_path#$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED\/}"
+guest_app_path="$GUEST_TRUFFLEBOX_PROJECTS_ROOT/$base_app_path"
+host_app_path="$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED/$base_app_path"
 
-# install deps
+# Check if exists 'node_modules' folder
+if [[ ! -d "$guest_app_path/node_modules" ]]; then
+  rm -rf $guest_app_path
+  mkdir -p "$guest_app_path/node_modules"
+fi
+
+# Check if target folder is not a symlink
+if [[ ! -h "$host_app_path/node_modules" ]]; then
+  rm -rf "$host_app_path/node_modules"
+fi
+
+# Recreate the link
+ln -sfT "$guest_app_path/node_modules" "$host_app_path/node_modules"
+
+# Install npm deps
+cd $host_app_path
 npm install
+echo "[info] '$prj_box' ready"
 
 # create lock file
 touch "$HOST_TRUFFLEBOX_PRJNAME_LOCK_FILE"
