@@ -13,7 +13,9 @@ if ! command -v truffle > /dev/null; then
   exit 1
 fi
 
-TRUFFLEBOX_PRJNAME="${TRUFFLEBOX_PROJECT_NAME:-trufflebox-webpack}"
+# project
+TRUFFLEBOX_PRJNAME="${TRUFFLEBOX_PRJNAME:-trufflebox-webpack}"
+TRUFFLEBOX_NAME="${TRUFFLEBOX_NAME:-webpack}"
 # host
 HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED=~/sf_projects
 HOST_TRUFFLEBOX_PRJNAME_PATH="$HOST_TRUFFLEBOX_PROJECTS_ROOT_MOUNTED/$TRUFFLEBOX_PRJNAME"
@@ -38,7 +40,7 @@ fi
 rm -rf $TRUFFLEBOX_TMP
 mkdir -p $TRUFFLEBOX_TMP
 cd $TRUFFLEBOX_TMP
-truffle unbox webpack
+truffle unbox $TRUFFLEBOX_NAME
 
 # Copy contents
 # -- *NOTE* This action is destructive
