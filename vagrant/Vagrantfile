@@ -51,13 +51,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       # gui
       vb.gui = false
-      vb.customize ["modifyvm", :id, "--vram", "256"] # 256
+      vb.customize ["modifyvm", :id, "--vram", "16"]
       vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
-      vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
-      vb.customize ["setextradata", "global", "GUI/MaxGuestResolution", "any"]
-      vb.customize ["setextradata", :id, "CustomVideoMode1", "1024x768x32"]
         # cpu/core
-      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--cpus", "2"]
       vb.customize ["modifyvm", :id, "--ioapic", "on"]
       vb.customize ["modifyvm", :id, "--cpuexecutioncap", "85"]
       # network
@@ -100,8 +97,16 @@ SHELL
     # Set up Truffle box
     dhost.vm.provision "trufflebox", type: "shell", privileged: false, inline: <<-SHELL
     set -e
-    echo "[info] Set up Truffle box ..."
-    exec "$BASH" -il /vagrant/scripts/setup-trufflebox.sh
+    (
+      echo "[info] Set up Truffle box (default=webpack)..."
+      exec "$BASH" -ilc /vagrant/scripts/setup-trufflebox.sh
+      echo
+    )
+    (
+      echo "[info] Fix Truffle boxes..."
+      exec "$BASH" -ilc /vagrant/scripts/fix-boxes.sh
+      echo
+    )
 SHELL
 
   end

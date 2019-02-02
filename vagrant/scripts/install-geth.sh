@@ -13,8 +13,10 @@ fi
 if ! command -v geth > /dev/null; then
   echo "[info] Install Go Ethereum..."
   add-apt-repository -y ppa:ethereum/ethereum
-  apt-get update
-  apt-get install -y gcc ethereum
+
+  DEBIAN_FRONTEND=noninteractive \
+    apt-get -qq update && \
+    apt-get -qqy install gcc ethereum
 else
   echo "[info] Go Ethreum already installed"
 fi

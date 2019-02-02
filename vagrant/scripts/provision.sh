@@ -13,6 +13,14 @@ fi
 
 cd_path=$(cd `dirname $0`; pwd)
 
+DEBIAN_FRONTEND=noninteractive \
+  apt-get -qq  update && \
+  apt-get -qqy install unzip
+
 bash "$cd_path/install-geth.sh"
+
+bash "$cd_path/install-chromedriver.sh"
+
+bash "$cd_path/install-phantomjs.sh"
 
 }
