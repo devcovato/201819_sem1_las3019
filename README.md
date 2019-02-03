@@ -11,7 +11,7 @@
 - [Intro](#intro)
   - [Vagrant](#vagrant)
 - [Project Organization](#project-organization)
-- [Truffle Project](#truffle-project)
+- [Truffle Project Development](#truffle-project-development)
 - [Tips and Tricks](#tips-and-tricks)
 - [Known Issues](#known-issues)
 - [License](#license)
@@ -72,23 +72,36 @@ Below the project organization:
 
 The `projects` folder contains `truffle` projects only. Additionally, the folder `projects` is mounted as shared folder into the vagrant box as `/home/vagrant/sf_projects`.
 
-## Truffle Project
+## Truffle Project Development
 
 By default the script `setup-trufflebox.sh` creates a new `truffle` project named `trufflebox-webpack`. Moreover, the file `trufflebox-webpack.lock` is created to avoid overriding the project already set up. So, if you want to recreate the project than delete the `lock` file.
 
-If you want change the default `truffle` project or add a new one set the environment variable `TRUFFLEBOX_PRJNAME` in `Vagranfile` like so:
+To set up a different project name and/or `truffle` box applies the following change:
 
 ```ruby
-    exec env TRUFFLEBOX_PROJECT_NAME='my-truffle' "$BASH" -il /vagrant/scripts/setup-trufflebox.sh
+    exec env TRUFFLEBOX_PROJECT_NAME='my-project' "$BASH" -il /vagrant/scripts/setup-trufflebox.sh
+    # or
+    exec env TRUFFLEBOX_NAME='webpack' "$BASH" -il /vagrant/scripts/setup-trufflebox.sh
+    # or
+    exec env TRUFFLEBOX_PRJNAME='my-project' env TRUFFLEBOX_NAME='webpack' "$BASH" -il /vagrant/scripts/setup-trufflebox.sh
 ```
 
-Before running a `truffle` project apply the following tweaks:
+In case of `webpack` box, before running a `truffle` project apply the following tweaks:
 
 - file `package.json` changes the script `dev` with `webpack-dev-server --public 201819-sem1-las3019.test:8080 --host 0.0.0.0`
-- file `app/scripts/index.js` replaces `127.0.0.1` with `201819-sem1-las3019.test`
-- file `truffle.js` changes host and port respectively with `201819-sem1-las3019.test` and `9545`
+- file `app/src/index.js` replaces `127.0.0.1` with `201819-sem1-las3019.test`
+- file `app/truffle-config.js` add the following network configuration:
 
-In order to run a Web3 provider for testing/developing run `ganache-cli --host 0.0.0.0 --port 9545`.
+    ```javascript
+    development: {
+      host: '0.0.0.0',
+      port: 8545,
+      network_id: '*' // Match any network id
+    }
+    ```
+
+- run `ganache-cli --host 0.0.0.0 --port 8545`, a Web3 provider for testing/development
+- run `truffle console --network development` in another terminal. Then `migrate --reset`
 
 The above changes about host come in handy to avoid the ports remapping and potentially some side-effects.
 
@@ -119,6 +132,8 @@ The above changes about host come in handy to avoid the ports remapping and pote
   npm ERR! invalid: ethereumjs-abi@0.6.5 /home/vagrant/.nvm/versions/node/v10.14.1/lib/node_modules/ganache-cli/node_modules/ganache-core/node_modules/eth-tx-summary/node_modules/eth-sig-util/node_modules/ethereumjs-abi
   npm ERR! invalid: ethereumjs-abi@0.6.5 /home/vagrant/.nvm/versions/node/v10.14.1/lib/node_modules/ganache-cli/node_modules/ganache-core/node_modules/web3-provider-engine/node_modules/eth-sig-util/node_modules/ethereumjs-abi
   ```
+
+- running bash script provide the warning message "bash: cannot set terminal process group (8598): Inappropriate ioctl for device"
 
 ## License
 
