@@ -109,6 +109,13 @@ The above changes about host come in handy to avoid the ports remapping and pote
 
 - use `byobu` to split the screen and running multiple commands
 - open your favourite browser at <http://201819-sem1-las3019.test:8080>
+- to grab `ganache` accounts, create a log file, and keeping the output on screen invoke `ganache-cli` as follow:
+
+  ```bash
+  ganache-cli --host 0.0.0.0 | tee ganache.log | tee >(head -n 40 > ganache-accounts.txt) -p
+  # or
+  ganache-cli --host 0.0.0.0 | tee >(head -n 40 > ganache-accounts.txt) -p | tee ganache.log
+  ```
 
 ## Known Issues
 
