@@ -115,6 +115,8 @@ The above changes about host come in handy to avoid the ports remapping and pote
   ganache-cli --host 0.0.0.0 | tee ganache.log | tee >(head -n 40 > ganache-accounts.txt) -p
   # or
   ganache-cli --host 0.0.0.0 | tee >(head -n 40 > ganache-accounts.txt) -p | tee ganache.log
+  # or keep the same accounts
+  ganache-cli --host 0.0.0.0 --mnemonic "las3019 blockchain ethereum dlt" | tee ganache.log | tee >(head -n 40 > ganache-accounts.txt) -p
   ```
 
 ## Known Issues
