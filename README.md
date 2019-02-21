@@ -88,7 +88,7 @@ To set up a different project name and/or `truffle` box applies the following ch
 
 In case of `webpack` box, before running a `truffle` project apply the following tweaks:
 
-- file `package.json` changes the script `dev` with `webpack-dev-server --public 201819-sem1-las3019.test:8080 --host 0.0.0.0`
+- file `package.json` changes the script `dev` with `webpack-dev-server --public 201819-sem1-las3019.test:8080 --host 0.0.0.0 --watch-poll`
 - file `app/src/index.js` replaces `127.0.0.1` with `201819-sem1-las3019.test`
 - file `app/truffle-config.js` add the following network configuration:
 
