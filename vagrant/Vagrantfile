@@ -42,6 +42,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     dhost.vm.hostname = "201819-sem1-las3019.test"
     # network
     dhost.vm.network "private_network", ip: "192.168.56.10"
+    dhost.vm.network "forwarded_port", guest: 8545, host: 8545
     # virtualbox settings
     dhost.vm.provider "virtualbox" do |vb|
       vb.name = "plas__201819-sem1-las3019"
@@ -53,7 +54,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.gui = false
       vb.customize ["modifyvm", :id, "--vram", "16"]
       vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
-        # cpu/core
+      # cpu/core
       vb.customize ["modifyvm", :id, "--cpus", "2"]
       vb.customize ["modifyvm", :id, "--ioapic", "on"]
       vb.customize ["modifyvm", :id, "--cpuexecutioncap", "85"]
